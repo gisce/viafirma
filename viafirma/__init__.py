@@ -49,6 +49,7 @@ class ViaFirmaClient(object):
         self.user = user
         self.password = password
         self.url = 'https://{}.viafirma.com/documents/api/v3/'.format(server)
+        self.session = requests.Session(auth=(user, password))
 
     @property
     def is_sandbox(self):
@@ -56,10 +57,27 @@ class ViaFirmaClient(object):
 
     def is_alive(self):
         url = '/'.join([self.url, 'system/alive'])
-        return requests.get(url)
+        return self.session.get(url)
 
     def create_process(self, group_code, documents):
-        pass
+        """
+        :param group_code: Group Code string
+        :type group_code: string
+        :param documents: Documents
+        :type documents: Document[]
+        :return: A dictionary with signature information
+        :rtype: dict
+        """
+        url = '/'.join([self.url, 'set'])
+        json_data = {
+            "groupCode": group_code,
+            "messages": [
+                d.serialize() for d in documents
+            ]
+        }
+        return self.session.post(
+            url, json=json_data
+        ).json()
 
     def create_signature(self, group_code, document):
         """
@@ -80,21 +98,19 @@ class ViaFirmaClient(object):
                 "text": "1a linea",
                 "detail": "2a linea"
             },
-            "document": {
-                "policies": [{
-                    "evidences": [{
-                        "type": "SIGNATURE"
-                    }],
-                    "signatures": [{
-                        "type": "SERVER",
-                        "typeFormatSign": "PADES_B"
-                    }]
+            "document": document.serialize(),
+            "policies" : [{
+                "evidences" : [{
+                    "type" : "SIGNATURE"
+                }],
+                "signatures" : [{
+                    "type" : "SERVER",
+                    "typeFormatSign" : "PADES_B"
                 }]
-            }
+            }]
         }
-        json_data["document"].update(document.serialize())
-        return requests.post(
-            url, json=json_data, auth=(self.user, self.password)
+        return self.session.post(
+            url, json=json_data
         ).json()
 
     def check_signature(self, code):
@@ -106,7 +122,7 @@ class ViaFirmaClient(object):
         :rtype: dict
         """
         url = '/'.join([self.url, 'messages/status', code])
-        return requests.get(url).json()
+        return self.session.get(url).json()
 
     def get_signature(self, code):
         """
@@ -117,4 +133,4 @@ class ViaFirmaClient(object):
         :rtype: dict
         """
         url = '/'.join([self.url, 'messages', code])
-        return requests.get(url).json()
+        return self.session.get(url).json()
