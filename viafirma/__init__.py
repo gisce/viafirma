@@ -141,13 +141,13 @@ class ViaFirmaClient(object):
                 "detail": "2a linea"
             },
             "document": document.serialize(),
-            "policies" : [{
-                "evidences" : [{
-                    "type" : "SIGNATURE"
+            "policies": [{
+                "evidences": [{
+                    "type": "SIGNATURE"
                 }],
-                "signatures" : [{
-                    "type" : "SERVER",
-                    "typeFormatSign" : "PADES_B"
+                "signatures": [{
+                    "type": "SERVER",
+                    "typeFormatSign": "PADES_B"
                 }]
             }]
         }
