@@ -79,7 +79,49 @@ class ViaFirmaClient(object):
             url, json=json_data
         ).json()
 
-    def create_signature(self, group_code, document):
+    def create_signature(self, group_code, documents, recipients):
+        """
+        :param group_code: Group Code string
+        :type group_code: string
+        :param documents: List
+        :type documents: List of Class Document
+        :param recipients: List
+        :type recipients: List of recipients
+        :return: A dictionary with signature information
+        :rtype: dict
+        """
+        url = '/'.join([self.url, 'message/dispatch'])
+
+        messages = []
+
+        for document in documents:
+            message = {
+                "document": document.serialize(),
+                "policies": [{
+                    "evidences": [{
+                        "type": "SIGNATURE"
+                    }],
+                    "signatures": [{
+                        "type": "SERVER",
+                        "typeFormatSign": "PADES_B"
+                    }]
+                }]
+            }
+            messages.append(message)
+
+        json_data = {
+            "groupCode": group_code,
+            "workflow": {
+                "type": "PRESENTIAL"
+            },
+            "recipients": recipients,
+            "messages": messages
+        }
+        return self.session.post(
+            url, json=json_data
+        ).json()
+
+    def create_single_signature(self, group_code, document):
         """
         :param group_code: Group Code string
         :type group_code: string
