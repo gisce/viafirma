@@ -176,3 +176,36 @@ class ViaFirmaClient(object):
         """
         url = '/'.join([self.url, 'messages', code])
         return self.session.get(url).json()
+
+    def check_signature(self, code):
+        """
+        Get all signature details
+        :param code: signature code
+        :type code: string
+        :return: A signature details
+        :rtype: dict
+        """
+        url = '/'.join([self.url, 'set/summary', code])
+        return self.session.get(url).json()
+
+    def download_signed_document(self, document_id):
+        """
+        Download signature document
+        :param document_id: document code
+        :type document_id: string
+        :return: A signature details
+        :rtype: dict
+        """
+        url = '/'.join([self.url, 'documents/download/signed/', document_id])
+        return self.session.get(url).json()
+
+    def download_trail_document(self, document_id):
+        """
+        Download signature document
+        :param document_id: document code
+        :type document_id: string
+        :return: A signature details
+        :rtype: dict
+        """
+        url = '/'.join([self.url, 'documents/download/trail/', document_id])
+        return self.session.get(url).json()
