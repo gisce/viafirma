@@ -155,7 +155,7 @@ class ViaFirmaClient(object):
             url, json=json_data
         ).json()
 
-    def check_signature(self, code):
+    def check_single_signature(self, code):
         """
         Check signature status
         :param code: signature code
@@ -166,7 +166,7 @@ class ViaFirmaClient(object):
         url = '/'.join([self.url, 'messages/status', code])
         return self.session.get(url).json()
 
-    def get_signature(self, code):
+    def get_single_signature(self, code):
         """
         Get all signature details
         :param code: signature code
