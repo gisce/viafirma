@@ -49,7 +49,8 @@ class ViaFirmaClient(object):
         self.user = user
         self.password = password
         self.url = 'https://{}.viafirma.com/documents/api/v3/'.format(server)
-        self.session = requests.Session(auth=(user, password))
+        self.session = requests.Session()
+        self.session.auth = (user, password)
 
     @property
     def is_sandbox(self):
@@ -90,7 +91,7 @@ class ViaFirmaClient(object):
         :return: A dictionary with signature information
         :rtype: dict
         """
-        url = '/'.join([self.url, 'message/dispatch'])
+        url = '/'.join([self.url, 'set'])
 
         messages = []
 
