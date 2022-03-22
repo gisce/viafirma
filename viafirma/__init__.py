@@ -80,7 +80,7 @@ class ViaFirmaClient(object):
             url, json=json_data
         ).json()
 
-    def create_signature(self, group_code, documents, recipients):
+    def create_signature(self, group_code, documents, recipients, configuration):
         """
         :param group_code: Group Code string
         :type group_code: string
@@ -88,6 +88,8 @@ class ViaFirmaClient(object):
         :type documents: List of Class Document
         :param recipients: List
         :type recipients: List of recipients
+        :param configuration: Dictionary
+        :type configuration: Dictionary of optional parameters
         :return: A dictionary with signature information
         :rtype: dict
         """
@@ -97,7 +99,7 @@ class ViaFirmaClient(object):
 
         for document in documents:
             message = {
-                "document": document.serialize(),
+                "document": document['base64'].serialize(),
                 "policies": [{
                     "evidences": [{
                         "type": "SIGNATURE"
@@ -108,6 +110,14 @@ class ViaFirmaClient(object):
                     }]
                 }]
             }
+            if configuration.get('callbackMails'):
+                message['callbackMails'] = configuration['callbackMails']
+
+            if document.get('coords'):
+                message['policies'][0]['evidences'][0]['positions'] = []
+                message['policies'][0]['evidences'][0]['positions'].append({})
+                message['policies'][0]['evidences'][0]['positions'][0]['rectangle'] = document['coords']
+                message['policies'][0]['evidences'][0]['positions'][0]['page'] = 1
             messages.append(message)
 
         json_data = {
