@@ -48,7 +48,7 @@ class ViaFirmaClient(object):
         self.server = server
         self.user = user
         self.password = password
-        self.url = 'https://{}.viafirma.com/documents/api/v3/'.format(server)
+        self.url = 'https://{}.viafirma.com/documents/api/v3'.format(server)
         self.session = requests.Session()
         self.session.auth = (user, password)
 
