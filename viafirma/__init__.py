@@ -48,8 +48,9 @@ class ViaFirmaClient(object):
         self.server = server
         self.user = user
         self.password = password
-        self.url = 'https://{}.viafirma.com/documents/api/v3/'.format(server)
-        self.session = requests.Session(auth=(user, password))
+        self.url = 'https://{}.viafirma.com/documents/api/v3'.format(server)
+        self.session = requests.Session()
+        self.session.auth = (user, password)
 
     @property
     def is_sandbox(self):
@@ -79,7 +80,59 @@ class ViaFirmaClient(object):
             url, json=json_data
         ).json()
 
-    def create_signature(self, group_code, document):
+    def create_signature(self, group_code, documents, recipients, configuration):
+        """
+        :param group_code: Group Code string
+        :type group_code: string
+        :param documents: List
+        :type documents: List of Class Document
+        :param recipients: List
+        :type recipients: List of recipients
+        :param configuration: Dictionary
+        :type configuration: Dictionary of optional parameters
+        :return: A dictionary with signature information
+        :rtype: dict
+        """
+        url = '/'.join([self.url, 'set'])
+
+        messages = []
+
+        for document in documents:
+            message = {
+                "document": document['base64'].serialize(),
+                "policies": [{
+                    "evidences": [{
+                        "type": "SIGNATURE"
+                    }],
+                    "signatures": [{
+                        "type": "SERVER",
+                        "typeFormatSign": "PADES_B"
+                    }]
+                }]
+            }
+            if configuration.get('callbackMails'):
+                message['callbackMails'] = configuration['callbackMails']
+
+            if document.get('coords'):
+                message['policies'][0]['evidences'][0]['positions'] = []
+                message['policies'][0]['evidences'][0]['positions'].append({})
+                message['policies'][0]['evidences'][0]['positions'][0]['rectangle'] = document['coords']
+                message['policies'][0]['evidences'][0]['positions'][0]['page'] = 1
+            messages.append(message)
+
+        json_data = {
+            "groupCode": group_code,
+            "workflow": {
+                "type": "PRESENTIAL"
+            },
+            "recipients": recipients,
+            "messages": messages
+        }
+        return self.session.post(
+            url, json=json_data
+        ).json()
+
+    def create_single_signature(self, group_code, document):
         """
         :param group_code: Group Code string
         :type group_code: string
@@ -99,13 +152,13 @@ class ViaFirmaClient(object):
                 "detail": "2a linea"
             },
             "document": document.serialize(),
-            "policies" : [{
-                "evidences" : [{
-                    "type" : "SIGNATURE"
+            "policies": [{
+                "evidences": [{
+                    "type": "SIGNATURE"
                 }],
-                "signatures" : [{
-                    "type" : "SERVER",
-                    "typeFormatSign" : "PADES_B"
+                "signatures": [{
+                    "type": "SERVER",
+                    "typeFormatSign": "PADES_B"
                 }]
             }]
         }
@@ -113,7 +166,7 @@ class ViaFirmaClient(object):
             url, json=json_data
         ).json()
 
-    def check_signature(self, code):
+    def check_single_signature(self, code):
         """
         Check signature status
         :param code: signature code
@@ -124,7 +177,7 @@ class ViaFirmaClient(object):
         url = '/'.join([self.url, 'messages/status', code])
         return self.session.get(url).json()
 
-    def get_signature(self, code):
+    def get_single_signature(self, code):
         """
         Get all signature details
         :param code: signature code
@@ -133,4 +186,37 @@ class ViaFirmaClient(object):
         :rtype: dict
         """
         url = '/'.join([self.url, 'messages', code])
+        return self.session.get(url).json()
+
+    def check_signature(self, code):
+        """
+        Get all signature details
+        :param code: signature code
+        :type code: string
+        :return: A signature details
+        :rtype: dict
+        """
+        url = '/'.join([self.url, 'set/summary', code])
+        return self.session.get(url).json()
+
+    def download_signed_document(self, document_id):
+        """
+        Download signature document
+        :param document_id: document code
+        :type document_id: string
+        :return: A signature details
+        :rtype: dict
+        """
+        url = '/'.join([self.url, 'documents/download/signed/', document_id])
+        return self.session.get(url).json()
+
+    def download_trail_document(self, document_id):
+        """
+        Download signature document
+        :param document_id: document code
+        :type document_id: string
+        :return: A signature details
+        :rtype: dict
+        """
+        url = '/'.join([self.url, 'documents/download/trail/', document_id])
         return self.session.get(url).json()
