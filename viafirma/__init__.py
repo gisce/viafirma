@@ -3,7 +3,7 @@ import requests
 
 
 SANDBOX = 'sandbox'
-PRODUCTION = 'services'
+PRODUCTION = 'documents'
 
 
 class Document(object):
